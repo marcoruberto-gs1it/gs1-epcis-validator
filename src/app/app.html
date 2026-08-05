@@ -117,11 +117,33 @@
 
     <!-- RIGHT: result -->
     <section class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col min-h-[560px]">
-      <div class="px-5 py-4 border-b border-gray-200">
-        <h2 class="font-semibold text-gs1-dark-gray">Risultato validazione</h2>
+      <div class="px-5 pt-4 border-b border-gray-200 flex items-center gap-5">
+        <button
+          type="button"
+          (click)="setActiveTab('validazione')"
+          class="pb-3 text-sm font-semibold border-b-2 -mb-px transition-colors"
+          [class.text-gs1-blue]="activeTab() === 'validazione'"
+          [class.border-gs1-orange]="activeTab() === 'validazione'"
+          [class.text-gs1-medium-gray]="activeTab() !== 'validazione'"
+          [class.border-transparent]="activeTab() !== 'validazione'"
+        >
+          Validazione
+        </button>
+        <button
+          type="button"
+          (click)="setActiveTab('struttura')"
+          class="pb-3 text-sm font-semibold border-b-2 -mb-px transition-colors"
+          [class.text-gs1-blue]="activeTab() === 'struttura'"
+          [class.border-gs1-orange]="activeTab() === 'struttura'"
+          [class.text-gs1-medium-gray]="activeTab() !== 'struttura'"
+          [class.border-transparent]="activeTab() !== 'struttura'"
+        >
+          Struttura
+        </button>
       </div>
 
       <div class="flex-1 p-5 overflow-y-auto">
+        @if (activeTab() === 'validazione') {
         @if (loading()) {
           <div class="h-full flex flex-col items-center justify-center gap-3 text-gs1-medium-gray py-16">
             <svg class="animate-spin h-6 w-6 text-gs1-orange" viewBox="0 0 24 24" fill="none">
@@ -186,6 +208,32 @@
               Incolla un evento EPCIS a sinistra e clicca <strong>"Valida evento"</strong> per vedere qui gli errori o la conferma di validità.
             </p>
           </div>
+        }
+        } @else if (parsedDocument(); as doc) {
+          @if (doc.status === 'ok') {
+            <app-structure-node [value]="doc.data" />
+          } @else if (doc.status === 'unsupported-format') {
+            <div class="rounded-md bg-amber-50 border border-gs1-honey/40 p-4">
+              <p class="font-semibold text-gs1-honey">Struttura non disponibile</p>
+              <p class="text-sm text-gray-600 mt-1">
+                La visualizzazione della struttura è disponibile solo per documenti in formato JSON.
+              </p>
+            </div>
+          } @else if (doc.status === 'invalid') {
+            <div class="rounded-md bg-rose-50 border border-gs1-raspberry/40 p-4">
+              <p class="font-semibold text-gs1-raspberry">JSON non valido</p>
+              <p class="text-sm text-gray-600 mt-1">Correggi la sintassi per visualizzare la struttura.</p>
+            </div>
+          } @else {
+            <div class="h-full flex flex-col items-center justify-center gap-3 text-center text-gs1-medium-gray py-16">
+              <svg class="h-10 w-10 text-gs1-light-medium-gray" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p class="text-sm max-w-xs">
+                Incolla un evento EPCIS JSON a sinistra per esplorarne la struttura, con i campi CBV evidenziati.
+              </p>
+            </div>
+          }
         }
       </div>
     </section>

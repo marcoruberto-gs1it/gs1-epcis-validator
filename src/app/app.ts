@@ -4,10 +4,19 @@ import { formatJson, formatXml, highlightJson } from './document-format';
 import { EXAMPLE_EVENT } from './example-event';
 import { EpcisSchema, EpcisVersion, ValidationOutcome } from './models/validation.model';
 import { detectFormat, EpcisValidationService } from './services/epcis-validation.service';
+import { StructureNode } from './structure/structure-node';
+
+type ResultTab = 'validazione' | 'struttura';
+
+type ParsedDocument =
+  | { status: 'empty' }
+  | { status: 'unsupported-format' }
+  | { status: 'invalid'; message: string }
+  | { status: 'ok'; data: unknown };
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule],
+  imports: [FormsModule, StructureNode],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -19,12 +28,32 @@ export class App {
   protected readonly loading = signal(false);
   protected readonly outcome = signal<ValidationOutcome | null>(null);
   protected readonly formatError = signal<string | null>(null);
+  protected readonly activeTab = signal<ResultTab>('validazione');
 
   protected readonly highlightedInput = computed(() => highlightJson(this.rawInput()));
+
+  protected readonly parsedDocument = computed<ParsedDocument>(() => {
+    const raw = this.rawInput().trim();
+    if (!raw) {
+      return { status: 'empty' };
+    }
+    if (detectFormat(raw) !== 'application/json') {
+      return { status: 'unsupported-format' };
+    }
+    try {
+      return { status: 'ok', data: JSON.parse(raw) };
+    } catch (err) {
+      return { status: 'invalid', message: err instanceof Error ? err.message : 'JSON non valido.' };
+    }
+  });
 
   private readonly highlightLayer = viewChild<ElementRef<HTMLElement>>('highlightLayer');
 
   constructor(private readonly validationService: EpcisValidationService) {}
+
+  setActiveTab(tab: ResultTab): void {
+    this.activeTab.set(tab);
+  }
 
   onInputChange(value: string): void {
     this.rawInput.set(value);
