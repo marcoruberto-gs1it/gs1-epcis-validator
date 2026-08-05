@@ -24,6 +24,25 @@ body {
   height: 100%;
 }
 
+.json-key {
+  color: var(--color-gs1-blue);
+  font-weight: 600;
+}
+
+.json-string {
+  color: var(--color-gs1-forest);
+}
+
+.json-number {
+  color: var(--color-gs1-orange);
+}
+
+.json-boolean,
+.json-null {
+  color: #9333ea;
+  font-style: italic;
+}
+
 body {
   background-color: var(--color-gs1-light-gray);
 }
