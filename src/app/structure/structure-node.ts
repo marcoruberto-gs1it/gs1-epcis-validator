@@ -1,11 +1,17 @@
 import { Component, computed, input } from '@angular/core';
-import { CbvEntry, FIELD_INFO, contextForChildren, lookupValueMeaning } from '../cbv/cbv-vocabulary';
+import { FIELD_INFO, contextForChildren, lookupValueMeaning } from '../cbv/cbv-vocabulary';
 import { InfoTooltip } from './info-tooltip';
 
 interface ChildEntry {
   key: string | null;
   displayKey: string;
   value: unknown;
+}
+
+interface DisplayInfo {
+  label: string;
+  description: string;
+  cbv: boolean;
 }
 
 @Component({
@@ -25,17 +31,13 @@ interface ChildEntry {
                 [class.text-gs1-light-medium-gray]="child.key === null"
               >{{ child.displayKey }}</span>
 
-              @if (fieldInfoFor(child.key); as info) {
+              @if (infoFor(child); as info) {
                 <app-info-tooltip [text]="info.description" [label]="info.label" [variant]="info.cbv ? 'cbv' : 'field'" />
               }
 
               @if (!isContainer(child.value)) {
                 <span class="font-mono text-[12px] text-gs1-medium-gray">:</span>
                 <span class="font-mono text-[12px]" [class]="valueClass(child.value)">{{ formatPrimitive(child.value) }}</span>
-
-                @if (valueMeaningFor(child); as meaning) {
-                  <app-info-tooltip [text]="meaning.description" [label]="meaning.label" variant="cbv" />
-                }
               }
             </div>
 
@@ -99,17 +101,19 @@ export class StructureNode {
     return 'text-gs1-dark-gray';
   }
 
-  protected fieldInfoFor(key: string | null) {
-    if (key === null) {
-      return null;
+  protected infoFor(child: ChildEntry): DisplayInfo | null {
+    if (typeof child.value === 'string') {
+      const meaning = lookupValueMeaning(child.key, this.effectiveContext(), child.value);
+      if (meaning) {
+        return { label: meaning.label, description: meaning.description, cbv: true };
+      }
     }
-    return FIELD_INFO[key] ?? null;
-  }
 
-  protected valueMeaningFor(child: ChildEntry): CbvEntry | null {
-    if (typeof child.value !== 'string') {
-      return null;
+    const field = child.key !== null ? FIELD_INFO[child.key] : null;
+    if (field) {
+      return { label: field.label, description: field.description, cbv: field.cbv };
     }
-    return lookupValueMeaning(child.key, this.effectiveContext(), child.value);
+
+    return null;
   }
 }
