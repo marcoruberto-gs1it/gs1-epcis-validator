@@ -18,9 +18,7 @@ const MIN_SPACE_ABOVE = 90;
       (blur)="hide()"
     >
       <svg
-        class="h-3.5 w-3.5 shrink-0"
-        [class.text-gs1-orange]="variant() === 'cbv'"
-        [class.text-gs1-medium-gray]="variant() !== 'cbv'"
+        class="h-3.5 w-3.5 shrink-0 text-gs1-medium-gray"
         viewBox="0 0 20 20"
         fill="currentColor"
         aria-hidden="true"
@@ -49,7 +47,6 @@ const MIN_SPACE_ABOVE = 90;
 export class InfoTooltip {
   text = input.required<string>();
   label = input<string | null>(null);
-  variant = input<'cbv' | 'field'>('field');
 
   protected readonly visible = signal(false);
   protected readonly style = signal<Record<string, string>>({});

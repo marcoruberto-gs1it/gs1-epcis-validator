@@ -11,7 +11,6 @@ interface ChildEntry {
 interface DisplayInfo {
   label: string;
   description: string;
-  cbv: boolean;
 }
 
 @Component({
@@ -32,7 +31,7 @@ interface DisplayInfo {
               >{{ child.displayKey }}</span>
 
               @if (infoFor(child); as info) {
-                <app-info-tooltip [text]="info.description" [label]="info.label" [variant]="info.cbv ? 'cbv' : 'field'" />
+                <app-info-tooltip [text]="info.description" [label]="info.label" />
               }
 
               @if (!isContainer(child.value)) {
@@ -105,13 +104,13 @@ export class StructureNode {
     if (typeof child.value === 'string') {
       const meaning = lookupValueMeaning(child.key, this.effectiveContext(), child.value);
       if (meaning) {
-        return { label: meaning.label, description: meaning.description, cbv: true };
+        return { label: meaning.label, description: meaning.description };
       }
     }
 
     const field = child.key !== null ? FIELD_INFO[child.key] : null;
     if (field) {
-      return { label: field.label, description: field.description, cbv: field.cbv };
+      return { label: field.label, description: field.description };
     }
 
     return null;
