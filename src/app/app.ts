@@ -1,12 +1,13 @@
 import { Component, computed, ElementRef, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { checkConformance, Finding, Severity } from './conformance/conformance-checker';
 import { formatJson, formatXml, highlightJson } from './document-format';
 import { EXAMPLE_EVENT } from './example-event';
 import { EpcisSchema, EpcisVersion, ValidationOutcome } from './models/validation.model';
 import { detectFormat, EpcisValidationService } from './services/epcis-validation.service';
 import { StructureNode } from './structure/structure-node';
 
-type ResultTab = 'validazione' | 'struttura';
+type ResultTab = 'validazione' | 'conformita' | 'struttura';
 
 type ParsedDocument =
   | { status: 'empty' }
@@ -45,6 +46,19 @@ export class App {
     } catch (err) {
       return { status: 'invalid', message: err instanceof Error ? err.message : 'JSON non valido.' };
     }
+  });
+
+  protected readonly findings = computed<Finding[] | null>(() => {
+    const doc = this.parsedDocument();
+    return doc.status === 'ok' ? checkConformance(doc.data) : null;
+  });
+
+  protected readonly findingCounts = computed(() => {
+    const counts: Record<Severity, number> = { errore: 0, avviso: 0, info: 0 };
+    for (const f of this.findings() ?? []) {
+      counts[f.severity]++;
+    }
+    return counts;
   });
 
   private readonly highlightLayer = viewChild<ElementRef<HTMLElement>>('highlightLayer');

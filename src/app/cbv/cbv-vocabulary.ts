@@ -13,9 +13,19 @@ const CBV_PREFIXES = [
   'urn:epcglobal:cbv:btt:',
   'urn:epcglobal:cbv:sdt:',
   'urn:epcglobal:cbv:er:',
+  'https://ref.gs1.org/cbv/BizStep-',
+  'https://ref.gs1.org/cbv/Disp-',
+  'https://ref.gs1.org/cbv/BTT-',
+  'https://ref.gs1.org/cbv/SDT-',
+  'https://ref.gs1.org/cbv/ER-',
+  'cbv:BizStep-',
+  'cbv:Disp-',
+  'cbv:BTT-',
+  'cbv:SDT-',
+  'cbv:ER-',
 ];
 
-function normalizeCbvCode(value: string): string {
+export function normalizeCbvCode(value: string): string {
   for (const prefix of CBV_PREFIXES) {
     if (value.startsWith(prefix)) {
       return value.slice(prefix.length);
@@ -34,6 +44,7 @@ export const CBV_BIZSTEPS: Record<string, CbvEntry> = {
   assembling: entry('Assembling', "Gli oggetti vengono assemblati in un'unità superiore."),
   collecting: entry('Collecting', 'Raccolta di oggetti, ad esempio rifiuti o campioni.'),
   commissioning: entry('Commissioning', "Prima associazione di un identificatore EPC a un oggetto fisico."),
+  consigning: entry('Consigning', 'Gli oggetti vengono affidati in conto deposito a un altro partner.'),
   consolidating: entry('Consolidating', 'Oggetti provenienti da fonti diverse vengono raggruppati insieme.'),
   creating_class_instance: entry(
     'Creating Class Instance',
@@ -62,6 +73,7 @@ export const CBV_BIZSTEPS: Record<string, CbvEntry> = {
   replacing: entry('Replacing', 'Un oggetto viene sostituito con un altro.'),
   reserving: entry('Reserving', 'Gli oggetti vengono riservati, ad esempio per un ordine.'),
   retail_selling: entry('Retail Selling', 'Gli oggetti vengono venduti al consumatore finale.'),
+  sensor_reporting: entry('Sensor Reporting', 'Registrazione di dati rilevati da sensori relativi agli oggetti.'),
   shipping: entry('Shipping', 'Gli oggetti lasciano la sede del mittente per essere spediti al destinatario.'),
   staging_outbound: entry(
     'Staging Outbound',
@@ -79,6 +91,10 @@ export const CBV_BIZSTEPS: Record<string, CbvEntry> = {
 
 export const CBV_DISPOSITIONS: Record<string, CbvEntry> = {
   active: entry('Active', "L'oggetto è attivo e operativo."),
+  available: entry('Available', "L'oggetto è disponibile per l'uso."),
+  completeness_inferred: entry('Completeness Inferred', 'La completezza del contenuto è dedotta, non verificata fisicamente.'),
+  completeness_verified: entry('Completeness Verified', 'La completezza del contenuto è stata verificata fisicamente.'),
+  conformant: entry('Conformant', 'Gli oggetti risultano conformi ai requisiti.'),
   container_closed: entry('Container Closed', "Il contenitore o l'unità logistica è chiuso."),
   container_open: entry('Container Open', "Il contenitore o l'unità logistica è aperto."),
   damaged: entry('Damaged', 'Gli oggetti sono danneggiati.'),
@@ -90,7 +106,12 @@ export const CBV_DISPOSITIONS: Record<string, CbvEntry> = {
   in_progress: entry('In Progress', "Il processo di business è in corso, non ancora concluso."),
   in_transit: entry('In Transit', 'Gli oggetti sono in transito tra due sedi.'),
   inactive: entry('Inactive', "L'oggetto non è attivo o operativo."),
+  mismatch_class: entry('Mismatch Class', 'La classe di prodotto rilevata non corrisponde a quella attesa.'),
+  mismatch_instance: entry('Mismatch Instance', "L'istanza rilevata non corrisponde a quella attesa."),
+  mismatch_quantity: entry('Mismatch Quantity', 'La quantità rilevata non corrisponde a quella attesa.'),
+  needs_replacement: entry('Needs Replacement', "L'oggetto deve essere sostituito."),
   no_pedigree_match: entry('No Pedigree Match', 'Non è stata trovata corrispondenza con il pedigree atteso.'),
+  non_conformant: entry('Non Conformant', 'Gli oggetti non risultano conformi ai requisiti.'),
   non_sellable_other: entry(
     'Non Sellable (Other)',
     'Gli oggetti non sono vendibili per un motivo non altrimenti specificato.',
@@ -106,11 +127,13 @@ export const CBV_DISPOSITIONS: Record<string, CbvEntry> = {
     'Gli oggetti sono vendibili ma non fisicamente accessibili, ad esempio in un container chiuso.',
   ),
   stolen: entry('Stolen', 'Gli oggetti risultano rubati.'),
+  unavailable: entry('Unavailable', "L'oggetto non è disponibile per l'uso."),
   unknown: entry('Unknown', 'Lo stato di disposition non è noto.'),
 };
 
 export const CBV_BIZ_TRANSACTION_TYPES: Record<string, CbvEntry> = {
   bol: entry('Bill of Lading', 'Documento di trasporto / polizza di carico.'),
+  cert: entry('Certificate', 'Certificato, ad esempio di conformità o di analisi.'),
   desadv: entry('Despatch Advice', 'Avviso di spedizione.'),
   inv: entry('Invoice', 'Fattura.'),
   pedigree: entry('Pedigree', 'Documento di tracciabilità della catena di custodia.'),
@@ -119,7 +142,9 @@ export const CBV_BIZ_TRANSACTION_TYPES: Record<string, CbvEntry> = {
   prodorder: entry('Production Order', 'Ordine di produzione.'),
   recadv: entry('Receiving Advice', 'Avviso di ricezione.'),
   rma: entry('Return Merchandise Authorisation', 'Autorizzazione al reso.'),
-  upstreamARN: entry('Upstream Advance Receipt Notice', 'Avviso di ricezione anticipata a monte della filiera.'),
+  testprd: entry('Test Procedure', 'Procedura di test.'),
+  testres: entry('Test Result', 'Risultato di un test.'),
+  upevt: entry('Upstream EPCIS Event', 'Evento EPCIS a monte della filiera collegato a questo evento.'),
 };
 
 export const CBV_SOURCE_DEST_TYPES: Record<string, CbvEntry> = {
@@ -133,7 +158,7 @@ export const CBV_ERROR_REASONS: Record<string, CbvEntry> = {
   incorrect_data: entry('Incorrect Data', "L'evento originale conteneva dati errati, ora corretti."),
 };
 
-const EVENT_TYPES: Record<string, CbvEntry> = {
+export const EVENT_TYPES: Record<string, CbvEntry> = {
   ObjectEvent: entry('Object Event', "Descrive un'attività relativa a uno o più oggetti fisici (EPC)."),
   AggregationEvent: entry(
     'Aggregation Event',

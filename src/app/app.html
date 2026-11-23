@@ -131,6 +131,26 @@
         </button>
         <button
           type="button"
+          (click)="setActiveTab('conformita')"
+          class="pb-3 text-sm font-semibold border-b-2 -mb-px transition-colors flex items-center gap-1.5"
+          [class.text-gs1-blue]="activeTab() === 'conformita'"
+          [class.border-gs1-orange]="activeTab() === 'conformita'"
+          [class.text-gs1-medium-gray]="activeTab() !== 'conformita'"
+          [class.border-transparent]="activeTab() !== 'conformita'"
+        >
+          Conformità
+          @if (findingCounts().errore + findingCounts().avviso > 0) {
+            <span
+              class="text-[10px] font-semibold text-white rounded-full px-1.5 py-0.5 leading-none"
+              [class.bg-gs1-raspberry]="findingCounts().errore > 0"
+              [class.bg-gs1-honey]="findingCounts().errore === 0"
+            >
+              {{ findingCounts().errore + findingCounts().avviso }}
+            </span>
+          }
+        </button>
+        <button
+          type="button"
           (click)="setActiveTab('struttura')"
           class="pb-3 text-sm font-semibold border-b-2 -mb-px transition-colors"
           [class.text-gs1-blue]="activeTab() === 'struttura'"
@@ -161,8 +181,23 @@
               <div>
                 <p class="font-semibold text-gs1-forest">Evento valido</p>
                 <p class="text-sm text-gray-600 mt-1">
-                  Il documento rispetta lo schema EPCIS {{ version }} ({{ schema }}). Nessuna correzione necessaria.
+                  Il documento rispetta lo schema EPCIS {{ version }} ({{ schema }}).
                 </p>
+                @if (findings(); as list) {
+                  @if (list.length > 0) {
+                    <p class="text-sm text-gray-600 mt-2">
+                      La validazione dello schema non copre tutte le regole di EPCIS e CBV: ci sono
+                      <strong>{{ findingCounts().errore }}</strong> errori,
+                      <strong>{{ findingCounts().avviso }}</strong> avvisi e
+                      <strong>{{ findingCounts().info }}</strong> suggerimenti di conformità.
+                      <button type="button" (click)="setActiveTab('conformita')" class="text-gs1-blue font-medium hover:underline underline-offset-2">
+                        Vedi i dettagli
+                      </button>
+                    </p>
+                  } @else {
+                    <p class="text-sm text-gray-600 mt-2">Nessun problema di conformità EPCIS/CBV rilevato.</p>
+                  }
+                }
               </div>
             </div>
           } @else if (result.status === 'invalid') {
@@ -209,6 +244,78 @@
             </p>
           </div>
         }
+        } @else if (activeTab() === 'conformita') {
+          @if (findings(); as list) {
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <span class="text-xs font-semibold px-2 py-1 rounded bg-rose-50 text-gs1-raspberry">{{ findingCounts().errore }} errori</span>
+              <span class="text-xs font-semibold px-2 py-1 rounded bg-amber-50 text-gs1-honey">{{ findingCounts().avviso }} avvisi</span>
+              <span class="text-xs font-semibold px-2 py-1 rounded bg-sky-50 text-gs1-blue">{{ findingCounts().info }} suggerimenti</span>
+            </div>
+            <p class="text-xs text-gs1-medium-gray mb-4">
+              Controlli eseguiti nel browser, in aggiunta alla validazione dello schema: regole dello standard EPCIS 2.0,
+              vocabolari CBV 2.0, identificatori GS1 e buone pratiche.
+              <strong>Errori</strong>: violano lo standard o il CBV.
+              <strong>Avvisi</strong>: ammessi, ma riducono l’interoperabilità.
+              <strong>Suggerimenti</strong>: buone pratiche consigliate.
+            </p>
+            @if (list.length === 0) {
+              <div class="rounded-md bg-green-50 border border-gs1-grass/40 p-4">
+                <p class="font-semibold text-gs1-forest">Nessun problema di conformità rilevato</p>
+              </div>
+            }
+            <ul class="space-y-3">
+              @for (f of list; track $index) {
+                <li
+                  class="border rounded-md p-3"
+                  [class.border-gs1-raspberry/40]="f.severity === 'errore'"
+                  [class.border-gs1-honey/40]="f.severity === 'avviso'"
+                  [class.border-gray-200]="f.severity === 'info'"
+                >
+                  <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <span
+                      class="text-[10px] uppercase font-semibold tracking-wide px-2 py-0.5 rounded"
+                      [class.bg-rose-50]="f.severity === 'errore'"
+                      [class.text-gs1-raspberry]="f.severity === 'errore'"
+                      [class.bg-amber-50]="f.severity === 'avviso'"
+                      [class.text-gs1-honey]="f.severity === 'avviso'"
+                      [class.bg-sky-50]="f.severity === 'info'"
+                      [class.text-gs1-blue]="f.severity === 'info'"
+                    >
+                      {{ f.severity === 'info' ? 'suggerimento' : f.severity }}
+                    </span>
+                    <span class="text-[10px] uppercase font-semibold tracking-wide bg-gray-100 text-gs1-medium-gray px-2 py-0.5 rounded">
+                      {{ f.category }}
+                    </span>
+                    <code class="text-[11px] text-gs1-medium-gray break-all">{{ f.path }}</code>
+                  </div>
+                  <p class="text-sm text-gray-800">{{ f.message }}</p>
+                  @if (f.suggestion) {
+                    <p class="text-sm text-gray-600 mt-1">
+                      <span class="font-medium text-gs1-dark-gray">Come correggere:</span> {{ f.suggestion }}
+                    </p>
+                  }
+                </li>
+              }
+            </ul>
+          } @else if (parsedDocument().status === 'unsupported-format') {
+            <div class="rounded-md bg-amber-50 border border-gs1-honey/40 p-4">
+              <p class="font-semibold text-gs1-honey">Controllo non disponibile</p>
+              <p class="text-sm text-gray-600 mt-1">
+                I controlli di conformità EPCIS/CBV sono disponibili solo per documenti EPCIS 2.0 in formato JSON.
+              </p>
+            </div>
+          } @else if (parsedDocument().status === 'invalid') {
+            <div class="rounded-md bg-rose-50 border border-gs1-raspberry/40 p-4">
+              <p class="font-semibold text-gs1-raspberry">JSON non valido</p>
+              <p class="text-sm text-gray-600 mt-1">Correggi la sintassi per eseguire i controlli di conformità.</p>
+            </div>
+          } @else {
+            <div class="h-full flex flex-col items-center justify-center gap-3 text-center text-gs1-medium-gray py-16">
+              <p class="text-sm max-w-xs">
+                Incolla un evento EPCIS JSON a sinistra per ricevere suggerimenti di conformità a EPCIS 2.0 e CBV.
+              </p>
+            </div>
+          }
         } @else if (parsedDocument(); as doc) {
           @if (doc.status === 'ok') {
             <app-structure-node [value]="doc.data" />
