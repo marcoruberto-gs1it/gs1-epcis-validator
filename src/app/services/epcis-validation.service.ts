@@ -15,7 +15,8 @@ export function detectFormat(raw: string): EpcisFormat {
 
 @Injectable({ providedIn: 'root' })
 export class EpcisValidationService {
-  private readonly endpoint = 'https://tools.openepcis.io/api/events/validate';
+  // Proxy CORS (cloudflare-worker/proxy.js) verso https://tools.openepcis.io/api/events/validate
+  private readonly endpoint = 'https://epcis-cors-proxy.marco-ruberto.workers.dev';
 
   constructor(private readonly http: HttpClient) {}
 

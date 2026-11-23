@@ -2,6 +2,7 @@ export interface ValidationError {
   type: string;
   line?: string;
   location?: string;
+  field?: string;
   column?: string;
   message: string;
 }
